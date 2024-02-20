@@ -1,0 +1,78 @@
+DHCP
+
+Toda computadorqa debe tener 4 cosas configuradas
+
+-Ip address
+-Subnet mask
+-Gateway
+-Name Server
+
+
+De todas estas 3 son usualmente las mismas en cada nodo en la red
+La subnet mask, el gateway primario y el DNS server.
+Pero la direccion IP necesita ser diferente en cada nodo en la red lo cual podria requerir trabajo de configuracion y aqui es donde DHCP Dynamic Host Configuration Protocol juega su rol.
+
+Esto del DHCP si que es critico para un IT al tratar con arreglar redes
+
+DHCP es protocolo del application layer que automatiza el proceso de configuracion de hosts en la red
+
+Con DHCP una maquina puede consultar un DHCP server cuando la computadora se conecta a la red y recibir toda la configuracion de red en una sola ida.
+
+No solo ahorra trabajo sino tambien ayuda a elegir que IP asignar a que maquina, cada computadora en una red requiere una IP para comunicacione, pero muy pocas de ellos reqqueriran una IP que comunmente conozcan
+
+copy-paste--
+Para servidores o equipos de red en su red, como su enrutador de puerta de enlace, una dirección IP estática y conocida es bastante importante. Por ejemplo, los dispositivos de una red necesitan conocer la IP de su puerta de enlace en todo momento. Si el servidor DNS local no funcionaba correctamente, los administradores de red aún necesitarían una forma de conectarse a algunos de estos dispositivos a través de su IP. Sin una IP estética configurada para un servidor DNS, sería difícil conectarse a él y diagnosticar cualquier problema si no funciona correctamente, pero para un grupo de dispositivos cliente, como computadoras de escritorio o portátiles, o incluso teléfonos móviles, en realidad solo es importante que
+tener una IP en la red correcta.
+
+---
+
+Con DHCP, se puede configurar un rango de direcciones IP reservadas para estos dispositivos cliente. Esto garantiza que cualquiera de estos dispositivos pueda obtener una dirección IP cuando la necesite. Pero resuelve el problema de tener que mantener una lista de cada nodo de la red y su correspondiente IP.
+
+Ahora entramos con algunos protocolos como:
+
+El mas comun Dynamic Allocation: Que es un rango de direcciones IP que se reservan para los dispositivos cliente y una de estas IP se emite a estos dispositivos cuando la solicitan.
+
+Debajo de Dynamic Allocation la IP de una computadora ser diferente cada vez que se conecte a la red
+
+
+Luego esta Automatic allocation que es baste similar a la dynamic: Se trata de un rango de direcciones IP que se reservan para propositos de asignacion la diferencia es que el DHCP se le pide que siga el record de que IPs se asignaron en el pasado, en pocas palabras de esta manera cada vex que se conecte esa maquina tambien se le asignara la misma IP.
+
+Dynamic: Las ips asignadas varian
+Automatic: Se mantienen las IPs
+
+
+Por ultimo tenemos el Fixed Allocation: Este requiere una lista especificada manualmente del MAC Address y su IPs correspondiente
+
+Asi que cuando una compu solicita una IP el DHCP busca por su direccion MAC en una tabla y asigna la IP que corresponde a esa MAC. Si la MAC no se encuentra, El DHCP puede irse a automatic o dynamic allocation o podría negarse por completo a asignar una IP.
+
+Ademas de todo esto tambien se puede utilizar el DHCP para otras cosas como NTP
+
+NTP Network time Protocol que es usado para mantener todas las compus en una red sincronizadas a tiempo
+
+
+---
+
+DHCP es un application Layer Protocol lo que significa que depende del transport, network, data-link y phisical layer para operar pero el DHCP en realidad ayuda a configurar la network layer en si
+
+Echemos un vistazo a exactamente cómo funciona DHCP y cómo logra las comunicaciones sin una configuración de capa de red implementada.
+
+DHCP discovery: El proceso mediante el cual un cliente configurado para utilizar DHCP intenta obtener información de configuración de red se conoce como descubrimiento de DHCP. 
+
+El proceso de este DHCP dicovery tiene 4 pasos
+
+1. Server discovery
+
+El cliente DHCP envía lo que se conoce como mensaje de descubrimiento de DHCP a la red. Como la máquina no tiene IP y
+no conoce la IP del servidor DHCP, en su lugar se genera un mensaje de difusión especialmente diseñado. DHCP escucha en el puerto UDP 67 y los mensajes de descubrimiento DHCP siempre se envían desde el puerto UDP 68. El mensaje de descubrimiento DHCP se encapsula en un datagrama UDP con un puerto de destino 67 y un puerto de origen 68. Luego, esto se encapsula dentro de un datagrama IP. con una IP de destino de 255.255.255.255 y una IP de origen de 0.0.0.0. Este mensaje de difusión se entregaría a cada nodo de la red de área local y, si hay un servidor DHCP presente, recibiría este mensaje.
+A continuación, el servidor DHCP examinaría su propia configuración y tomaría una decisión sobre qué dirección IP, si la hubiera, ofrecer al cliente.
+Esto dependerá de si está configurado para ejecutarse con asignación de dirección dinámica, automática o fija. La respuesta se enviaría como
+un mensaje de oferta DHCP con un puerto de destino de 68, un puerto de origen de 67, una IP de transmisión de destino de 255.255.255.255 y su IP real como origen.
+
+Dado que la oferta DHCP también es una broadcast (transmision), llegaría a todas las máquinas de la red. El cliente original reconocería que este mensaje estaba destinado a él mismo. Esto se debe a que la oferta de DHCP tiene el campo que especifica la dirección MAC del cliente que envió el mensaje de descubrimiento de DHCP. La máquina cliente ahora procesará esta oferta de DHCP para ver qué IP se le ofrece. Técnicamente, un cliente DHCP podría rechazar esta oferta. Es totalmente posible que se ejecuten varios servidores DHCP en la misma red y que un cliente DHCP esté configurado para responder solo a una oferta de una IP dentro de un rango determinado. Pero esto es raro. Más a menudo, el cliente DHCP respondería al mensaje de oferta DHCP con un mensaje de solicitud DHCP.
+
+Este mensaje esencialmente dice, sí, me gustaría tener una IP que me ofrecieron. Como la IP aún no ha sido asignada,
+esto se envía nuevamente desde una IP de 0.0.0.0 y a la IP de transmisión de 255.255.255.255. Finalmente, el servidor DHCP recibe el mensaje de solicitud DHCP y responde con un mensaje DHCPACK o Confirmación DHCP. Este mensaje se envía nuevamente a una IP de transmisión de 255.255.255.255 y con una IP de origen correspondiente a la IP real del servidor DHCP. Nuevamente, el cliente DHCP reconocería que este mensaje estaba destinado a sí mismo mediante la inclusión de su dirección MAC en uno de los campos del mensaje. La pila de red en la computadora cliente ahora puede usar la información de configuración que le presenta el servidor DHCP para establecer su propia configuración de capa de red. En esta etapa, la computadora que actúa como cliente DHCP debe tener toda la información que necesita para operar de manera completa en la red a la que está conectada. Toda esta configuración se conoce como arrendamiento DHCP, ya que incluye un tiempo de caducidad. Una concesión de DHCP puede durar días o sólo un corto período de tiempo. Una vez que el contrato de arrendamiento ha expirado,
+el cliente DHCP necesitaría negociar una nueva concesión realizando todo el proceso de descubrimiento de DHCP nuevamente.
+Un cliente también puede liberar su concesión al servidor DHCP, lo que haría cuando se desconecta de la red. Esto permitiría al servidor DHCP devolver la dirección IP asignada a su grupo de IP disponibles.
+
+
